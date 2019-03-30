@@ -84,12 +84,12 @@ public abstract class Critter {
 			// setting y coordinate
 			f1 = new_critter.getClass().getSuperclass().getDeclaredField("y_coord");
 			f1.set(new_critter, Critter.getRandomInt(Params.WORLD_HEIGHT));
+			
+			// add to collection of critters
+	    	population.add((Critter) new_critter);
 		} catch (Exception e) {
 			throw new InvalidCritterException(critter_class_name);
-		}    	
-    	
-    	// add to collection of critters
-    	
+		}    	    	
     }
 
     /**
