@@ -36,6 +36,8 @@ public abstract class Critter {
 
     private int x_coord;
     private int y_coord;
+    private boolean moved;
+    private boolean encounter;
 
     private static List<Critter> population = new ArrayList<Critter>();
     private static List<Critter> babies = new ArrayList<Critter>();
@@ -80,6 +82,8 @@ public abstract class Critter {
 			population.get(population.size()-1).energy = Params.START_ENERGY;
 			population.get(population.size()-1).x_coord = Critter.getRandomInt(Params.WORLD_WIDTH);
 			population.get(population.size()-1).y_coord = Critter.getRandomInt(Params.WORLD_HEIGHT);
+			population.get(population.size()-1).moved = false;
+			population.get(population.size()-1).encounter = false;
 			
 		} catch (Exception e) {
 			throw new InvalidCritterException(critter_class_name);
@@ -104,21 +108,26 @@ public abstract class Critter {
      * Clear the world of all critters, dead and alive
      */
     public static void clearWorld() {
-        // TODO: Complete this method
+        population.clear();
+        babies.clear();
     }
 
-    public static void worldTimeStep() {
-        // TODO: Complete this method
-    	
-    	// 1. invoke doTimeStep() for every creature in the collection
+    public static void worldTimeStep() throws InvalidCritterException {
     	for (Critter critter : population) {
     		critter.doTimeStep();
-    		// if critter dies, remove them from the collection
     	}
-    	
-    	
+    	doEncounters();
+    	for (Critter critter : population) {
+    		critter.energy -= Params.REST_ENERGY_COST;
+    		if (critter.energy <= 0) {
+    			population.remove(critter);
+    		}
+    	}
+    	genClover();
+		population.addAll(babies);
+		babies.clear();
     }
-
+    
     public static void displayWorld() {
         // TODO: Complete this method
     }
@@ -146,7 +155,7 @@ public abstract class Critter {
     }
     
     public abstract void doTimeStep();
-
+    
     public abstract boolean fight(String oponent);
 
     /* a one-character long string that visually depicts your critter
@@ -158,20 +167,184 @@ public abstract class Critter {
     protected int getEnergy() {
         return energy;
     }
-
+    
+    private void checkMove(int direction, int step) {
+        if (!moved) {
+        	if (!encounter) {
+        		move(direction, 1);
+        		moved = true;
+        	}
+        	else {
+        		int og_x = x_coord;
+        		int og_y = y_coord;
+        		move(direction, 1);
+        		for (Critter critter : population) {
+        			if (critter.x_coord == x_coord && critter.y_coord == y_coord) {
+        				x_coord = og_x;
+        				y_coord = og_y;
+        				break;
+        			}
+        		}
+        		
+        	}
+        }
+    }
+    
     protected final void walk(int direction) {
-        // TODO: Complete this method
+        energy -= Params.WALK_ENERGY_COST;
+        checkMove(direction, 1);
     }
 
     protected final void run(int direction) {
-        // TODO: Complete this method
+    	energy -= Params.RUN_ENERGY_COST;
+    	checkMove(direction, 2);
 
+    }
+    
+    private void move(int direction, int steps) {
+    	if (direction == 0) {
+    		if (x_coord + steps >= Params.WORLD_WIDTH) {
+    			x_coord = Math.abs(Params.WORLD_WIDTH - (x_coord + steps));
+    		}
+    		else { 
+    			x_coord++;
+    		}
+    	}
+    	else if (direction == 1) {
+    		if (x_coord + steps >= Params.WORLD_WIDTH) {
+    			x_coord = Math.abs(Params.WORLD_WIDTH - (x_coord + steps));
+    		}
+    		else { 
+    			x_coord++;
+    		}
+    		
+    		if (y_coord - steps < 0) {
+    			y_coord = Math.abs(Params.WORLD_HEIGHT - steps);
+    		}
+    		else { 
+    			y_coord--;
+    		}
+    	}
+    	else if (direction == 2) {
+    		if (y_coord - steps < 0) {
+    			y_coord = Math.abs(Params.WORLD_HEIGHT - steps);
+    		}
+    		else { 
+    			y_coord--;
+    		}
+    	}
+    	else if (direction == 3) {
+    		if (x_coord - steps < 0) {
+    			x_coord = Math.abs(Params.WORLD_WIDTH - steps);
+    		}
+    		else { 
+    			x_coord--;
+    		}
+    		
+    		if (y_coord - steps < 0) {
+    			y_coord = Math.abs(Params.WORLD_HEIGHT - steps);
+    		}
+    		else { 
+    			y_coord--;
+    		}
+    	}
+    	else if (direction == 4) {
+    		if (x_coord - steps < 0) {
+    			x_coord = Math.abs(Params.WORLD_WIDTH - steps);
+    		}
+    		else { 
+    			x_coord--;
+    		}
+    	}
+    	else if (direction == 5) {
+    		if (x_coord - steps < 0) {
+    			x_coord = Math.abs(Params.WORLD_WIDTH - steps);
+    		}
+    		else { 
+    			x_coord--;
+    		}
+    		
+    		if (y_coord + steps >= Params.WORLD_HEIGHT) {
+    			y_coord = Math.abs(Params.WORLD_HEIGHT - (y_coord + steps));
+    		}
+    		else { 
+    			y_coord++;
+    		}
+    	}
+    	else if (direction == 6) {
+    		if (y_coord + steps >= Params.WORLD_HEIGHT) {
+    			y_coord = Math.abs(Params.WORLD_HEIGHT - (y_coord + steps));
+    		}
+    		else { 
+    			y_coord++;
+    		}
+    	}
+    	else {
+    		if (x_coord + steps >= Params.WORLD_WIDTH) {
+    			x_coord = Math.abs(Params.WORLD_WIDTH - (x_coord + steps));
+    		}
+    		else { 
+    			x_coord++;
+    		}
+    		
+    		if (y_coord + steps >= Params.WORLD_HEIGHT) {
+    			y_coord = Math.abs(Params.WORLD_HEIGHT - (y_coord + steps));
+    		}
+    		else { 
+    			y_coord++;
+    		}
+    	}
     }
 
     protected final void reproduce(Critter offspring, int direction) {
         // TODO: Complete this method
     }
-
+    
+    protected final static void doEncounters() {
+    	for (Critter critter_1 : population) {
+    		for (Critter critter_2 : population) {
+        		if (critter_1 != critter_2) {
+        			if (critter_1.x_coord == critter_2.x_coord && critter_1.y_coord == critter_2.y_coord) {
+        				boolean fight_1 = critter_1.fight(critter_2.toString().toString());
+        				boolean fight_2 = critter_2.fight(critter_1.toString().toString());
+        				if (critter_1.energy > 0 && critter_2.energy > 0 
+        						&& critter_1.x_coord == critter_2.x_coord 
+        						&& critter_1.y_coord == critter_2.y_coord) {
+        					int num_1, num_2;
+        					if (fight_1) {
+        						num_1 = getRandomInt(critter_1.energy);
+        					}
+        					else {
+        						num_1 = 0;
+        					}
+        					
+        					if (fight_2) {
+        						num_2 = getRandomInt(critter_2.energy);
+        					}
+        					else {
+        						num_2 = 0;
+        					}
+        					
+        					if (num_1 > num_2) {
+        						critter_1.energy += critter_2.energy/2;
+        						critter_2.energy = 0;
+        					}
+        					else {
+        						critter_2.energy += critter_1.energy/2;
+        						critter_1.energy = 0;
+        					}
+        				}
+        			}
+        		}
+        	}
+    	}
+    }
+    
+    protected final static void genClover() throws InvalidCritterException {
+    	for (int i = 0; i < Params.REFRESH_CLOVER_COUNT; i++) {
+    		createCritter("Clover");
+    	}
+    }
     /**
      * The TestCritter class allows some critters to "cheat". If you
      * want to create tests of your Critter model, you can create
