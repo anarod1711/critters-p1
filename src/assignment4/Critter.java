@@ -14,6 +14,7 @@
 
 package assignment4;
 
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -65,9 +66,16 @@ public abstract class Critter {
      * @param critter_class_name
      * @throws InvalidCritterException
      */
-    public static void createCritter(String critter_class_name)
-            throws InvalidCritterException {
+    public static void createCritter(String critter_class_name) throws InvalidCritterException {
         // TODO: Complete this method
+    	String critter_name = myPackage + "." + critter_class_name;
+    	try {
+			Class<?> critter_class = Class.forName(critter_name);
+			Constructor<?> constructor = critter_class.getConstructor();
+			Object new_critter = constructor.newInstance();
+		} catch (Exception e) {
+			throw new InvalidCritterException(critter_class_name);
+		}
     }
 
     /**
