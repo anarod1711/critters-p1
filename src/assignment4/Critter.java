@@ -75,18 +75,12 @@ public abstract class Critter {
 			Constructor<?> constructor = critter_class.getConstructor();
 			Object new_critter = constructor.newInstance();	
 			
-			// setting energy
-			Field f1 = new_critter.getClass().getSuperclass().getDeclaredField("energy");
-			f1.set(new_critter, Params.START_ENERGY);
-			// setting x coordinate
-			f1 = new_critter.getClass().getSuperclass().getDeclaredField("x_coord");
-			f1.set(new_critter, Critter.getRandomInt(Params.WORLD_WIDTH));
-			// setting y coordinate
-			f1 = new_critter.getClass().getSuperclass().getDeclaredField("y_coord");
-			f1.set(new_critter, Critter.getRandomInt(Params.WORLD_HEIGHT));
+			// setting parameters of newly created critter
+			population.add((Critter) new_critter);
+			population.get(population.size()-1).energy = Params.START_ENERGY;
+			population.get(population.size()-1).x_coord = Critter.getRandomInt(Params.WORLD_WIDTH);
+			population.get(population.size()-1).y_coord = Critter.getRandomInt(Params.WORLD_HEIGHT);
 			
-			// add to collection of critters
-	    	population.add((Critter) new_critter);
 		} catch (Exception e) {
 			throw new InvalidCritterException(critter_class_name);
 		}    	    	
@@ -115,6 +109,8 @@ public abstract class Critter {
 
     public static void worldTimeStep() {
         // TODO: Complete this method
+    	// 1. invoke doTimeStep() for every creature in the collection
+    	//for (Critter )
     }
 
     public static void displayWorld() {
