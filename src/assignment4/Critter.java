@@ -68,7 +68,6 @@ public abstract class Critter {
      * @throws InvalidCritterException
      */
     public static void createCritter(String critter_class_name) throws InvalidCritterException {
-        // TODO: Complete this method
     	String critter_name = myPackage + "." + critter_class_name;
     	try {
     		// creating new critter through reflection
@@ -76,16 +75,21 @@ public abstract class Critter {
 			Constructor<?> constructor = critter_class.getConstructor();
 			Object new_critter = constructor.newInstance();	
 			
-			// setting critters energy to default, coordinations to random
+			// setting energy
 			Field f1 = new_critter.getClass().getSuperclass().getDeclaredField("energy");
 			f1.set(new_critter, 10);
+			// setting x coordinate
 			f1 = new_critter.getClass().getSuperclass().getDeclaredField("x_coord");
 			f1.set(new_critter, Critter.getRandomInt(Params.WORLD_WIDTH));
+			// setting y coordinate
 			f1 = new_critter.getClass().getSuperclass().getDeclaredField("y_coord");
 			f1.set(new_critter, Critter.getRandomInt(Params.WORLD_HEIGHT));
 		} catch (Exception e) {
 			throw new InvalidCritterException(critter_class_name);
 		}    	
+    	
+    	// add to collection of critters
+    	
     }
 
     /**
