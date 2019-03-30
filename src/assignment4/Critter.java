@@ -77,7 +77,7 @@ public abstract class Critter {
 			
 			// setting energy
 			Field f1 = new_critter.getClass().getSuperclass().getDeclaredField("energy");
-			f1.set(new_critter, 10);
+			f1.set(new_critter, Params.START_ENERGY);
 			// setting x coordinate
 			f1 = new_critter.getClass().getSuperclass().getDeclaredField("x_coord");
 			f1.set(new_critter, Critter.getRandomInt(Params.WORLD_WIDTH));
