@@ -15,6 +15,7 @@
 package assignment4;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -70,12 +71,21 @@ public abstract class Critter {
         // TODO: Complete this method
     	String critter_name = myPackage + "." + critter_class_name;
     	try {
+    		// creating new critter through reflection
 			Class<?> critter_class = Class.forName(critter_name);
 			Constructor<?> constructor = critter_class.getConstructor();
-			Object new_critter = constructor.newInstance();
+			Object new_critter = constructor.newInstance();	
+			
+			// setting critters energy to default, coordinations to random
+			Field f1 = new_critter.getClass().getSuperclass().getDeclaredField("energy");
+			f1.set(new_critter, 10);
+			f1 = new_critter.getClass().getSuperclass().getDeclaredField("x_coord");
+			f1.set(new_critter, Critter.getRandomInt(Params.WORLD_WIDTH));
+			f1 = new_critter.getClass().getSuperclass().getDeclaredField("y_coord");
+			f1.set(new_critter, Critter.getRandomInt(Params.WORLD_HEIGHT));
 		} catch (Exception e) {
 			throw new InvalidCritterException(critter_class_name);
-		}
+		}    	
     }
 
     /**
@@ -128,7 +138,7 @@ public abstract class Critter {
         }
         System.out.println();
     }
-
+    
     public abstract void doTimeStep();
 
     public abstract boolean fight(String oponent);
