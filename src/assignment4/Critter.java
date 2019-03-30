@@ -109,8 +109,14 @@ public abstract class Critter {
 
     public static void worldTimeStep() {
         // TODO: Complete this method
+    	
     	// 1. invoke doTimeStep() for every creature in the collection
-    	//for (Critter )
+    	for (Critter critter : population) {
+    		critter.doTimeStep();
+    		// if critter dies, remove them from the collection
+    	}
+    	
+    	
     }
 
     public static void displayWorld() {
