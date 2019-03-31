@@ -15,7 +15,6 @@
 package assignment4;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,7 +36,7 @@ public abstract class Critter {
     private int x_coord;
     private int y_coord;
     private boolean moved;
-    private boolean encounter;
+    private static boolean encounter = false;
 
     private static List<Critter> population = new ArrayList<Critter>();
     private static List<Critter> babies = new ArrayList<Critter>();
@@ -82,9 +81,7 @@ public abstract class Critter {
 			population.get(population.size()-1).energy = Params.START_ENERGY;
 			population.get(population.size()-1).x_coord = Critter.getRandomInt(Params.WORLD_WIDTH);
 			population.get(population.size()-1).y_coord = Critter.getRandomInt(Params.WORLD_HEIGHT);
-			population.get(population.size()-1).moved = false;
-			population.get(population.size()-1).encounter = false;
-			
+			population.get(population.size()-1).moved = false;			
 		} catch (Exception e) {
 			throw new InvalidCritterException(critter_class_name);
 		}    	    	
@@ -113,12 +110,18 @@ public abstract class Critter {
     }
 
     public static void worldTimeStep() throws InvalidCritterException {
+    	// movement of critters
     	for (Critter critter : population) {
     		critter.doTimeStep();
     	}
+    	// checking for encounters between critters
+    	encounter = true;
     	doEncounters();
+    	encounter = false;
+    	// depletion of rest energy cost
     	for (Critter critter : population) {
     		critter.energy -= Params.REST_ENERGY_COST;
+    		// removal of critters
     		if (critter.energy <= 0) {
     			population.remove(critter);
     		}
@@ -129,7 +132,39 @@ public abstract class Critter {
     }
     
     public static void displayWorld() {
-        // TODO: Complete this method
+    	int height = Params.WORLD_HEIGHT+2;
+    	int width = Params.WORLD_WIDTH+2;
+        String[][] world = new String[height][width];
+        // add + to corners
+        world[0][0] = "+";
+        world[0][width-1] = "+";
+        world[height-1][0] = "+";
+        world[height-1][width-1] = "+";
+        // add top and bottom dashes
+        for (int i = 0; i < width; i++) {
+        	if (i != 0 && i != width-1) {
+	        	world[0][i] = "-";
+	        	world[height-1][i] = "-";
+        	}
+        }
+        // add side dashes
+        for (int j = 0; j < height; j++) {
+        	if (j != 0 && j != height-1) {
+            	world[j][0] = "|";
+            	world[j][width-1] = "|";
+        	}
+        }
+        // adding critters to world
+        for (Critter critter : population) {
+        	world[critter.y_coord][critter.x_coord] = critter.toString();
+        }        
+        // printing world
+        for (int i = 0; i < height; i++) {
+        	for (int j = 0; j < width; j++) {
+        		System.out.print(world[i][j]);
+        	}
+        	System.out.println();
+        }
     }
 
     /**
@@ -298,6 +333,23 @@ public abstract class Critter {
 
     protected final void reproduce(Critter offspring, int direction) {
         // TODO: Complete this method
+    	if (offspring.energy <= Params.MIN_REPRODUCE_ENERGY) {
+			try {
+				Critter new_critter = offspring.getClass().newInstance();
+				// instantiating new critter's parameters
+				new_critter.energy = offspring.energy / 2;
+				new_critter.x_coord = offspring.x_coord;
+				new_critter.y_coord = offspring.y_coord;
+				offspring.energy = (int) Math.ceil(offspring.energy / 2);
+				// placing new critter position
+				new_critter.move(direction, 1);
+				// add new critter into babies collection
+				babies.add(new_critter);
+			} catch (InstantiationException | IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    	}
     }
     
     protected final static void doEncounters() {
