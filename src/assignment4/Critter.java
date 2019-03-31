@@ -94,11 +94,25 @@ public abstract class Critter {
      *        Unqualified class name.
      * @return List of Critters.
      * @throws InvalidCritterException
+     * @throws ClassNotFoundException 
      */
     public static List<Critter> getInstances(String critter_class_name)
             throws InvalidCritterException {
-        // TODO: Complete this method
-        return null;
+    	String critter_name = myPackage + "." + critter_class_name;
+    	Class<?> critter_class;
+    	List<Critter> critters = new ArrayList<Critter>();
+		try {
+			critter_class = Class.forName(critter_name);
+			for (Critter critter : population) {
+	        	if (critter_class.isInstance(critter)) {
+	        		critters.add(critter);
+	        	}
+	        }
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        return critters;
     }
 
     /**
@@ -121,10 +135,17 @@ public abstract class Critter {
     	// depletion of rest energy cost
     	for (Critter critter : population) {
     		critter.energy -= Params.REST_ENERGY_COST;
-    		// removal of critters
-    		if (critter.energy <= 0) {
-    			population.remove(critter);
+    	}
+    	// removal of critters
+    	for (int i = 0; i < population.size(); i++) {
+    		if (population.get(i).energy <= 0) {
+    			population.remove(i);
+    			i--;
     		}
+    	}
+    	// reset moved flag for all critters before next round
+    	for (Critter critter : population) {
+    		critter.moved = false;
     	}
     	genClover();
 		population.addAll(babies);
@@ -156,12 +177,17 @@ public abstract class Critter {
         }
         // adding critters to world
         for (Critter critter : population) {
-        	world[critter.y_coord][critter.x_coord] = critter.toString();
-        }        
+        	world[critter.y_coord+1][critter.x_coord+1] = critter.toString();
+        } 
         // printing world
         for (int i = 0; i < height; i++) {
         	for (int j = 0; j < width; j++) {
-        		System.out.print(world[i][j]);
+        		if (world[i][j] == null) {
+        			System.out.print(" ");
+        		}
+        		else {
+        			System.out.print(world[i][j]);
+        		}
         	}
         	System.out.println();
         }
@@ -205,10 +231,12 @@ public abstract class Critter {
     
     private void checkMove(int direction, int step) {
         if (!moved) {
-        	if (!encounter) {
+        	if (!encounter) { // not in encounter mode
         		move(direction, 1);
         		moved = true;
         	}
+        	// encounter mode, make sure you don't run or walk
+        	// to same position as another critter
         	else {
         		int og_x = x_coord;
         		int og_y = y_coord;
@@ -220,7 +248,6 @@ public abstract class Critter {
         				break;
         			}
         		}
-        		
         	}
         }
     }
@@ -254,7 +281,7 @@ public abstract class Critter {
     		}
     		
     		if (y_coord - steps < 0) {
-    			y_coord = Math.abs(Params.WORLD_HEIGHT - steps);
+    			y_coord = Math.abs(Params.WORLD_HEIGHT - Math.abs(y_coord - steps));
     		}
     		else { 
     			y_coord--;
@@ -262,7 +289,7 @@ public abstract class Critter {
     	}
     	else if (direction == 2) {
     		if (y_coord - steps < 0) {
-    			y_coord = Math.abs(Params.WORLD_HEIGHT - steps);
+    			y_coord = Math.abs(Params.WORLD_HEIGHT - Math.abs(y_coord - steps));
     		}
     		else { 
     			y_coord--;
@@ -270,14 +297,14 @@ public abstract class Critter {
     	}
     	else if (direction == 3) {
     		if (x_coord - steps < 0) {
-    			x_coord = Math.abs(Params.WORLD_WIDTH - steps);
+    			x_coord = Math.abs(Params.WORLD_WIDTH - Math.abs(x_coord - steps));
     		}
     		else { 
     			x_coord--;
     		}
     		
     		if (y_coord - steps < 0) {
-    			y_coord = Math.abs(Params.WORLD_HEIGHT - steps);
+    			y_coord = Math.abs(Params.WORLD_HEIGHT - Math.abs(y_coord - steps));
     		}
     		else { 
     			y_coord--;
@@ -285,7 +312,7 @@ public abstract class Critter {
     	}
     	else if (direction == 4) {
     		if (x_coord - steps < 0) {
-    			x_coord = Math.abs(Params.WORLD_WIDTH - steps);
+    			x_coord = Math.abs(Params.WORLD_WIDTH - Math.abs(x_coord - steps));
     		}
     		else { 
     			x_coord--;
@@ -293,7 +320,7 @@ public abstract class Critter {
     	}
     	else if (direction == 5) {
     		if (x_coord - steps < 0) {
-    			x_coord = Math.abs(Params.WORLD_WIDTH - steps);
+    			x_coord = Math.abs(Params.WORLD_WIDTH - Math.abs(x_coord - steps));
     		}
     		else { 
     			x_coord--;
@@ -333,7 +360,7 @@ public abstract class Critter {
 
     protected final void reproduce(Critter offspring, int direction) {
         // TODO: Complete this method
-    	if (offspring.energy <= Params.MIN_REPRODUCE_ENERGY) {
+    	if (offspring.energy >= Params.MIN_REPRODUCE_ENERGY) {
 			try {
 				Critter new_critter = offspring.getClass().newInstance();
 				// instantiating new critter's parameters
@@ -357,8 +384,8 @@ public abstract class Critter {
     		for (Critter critter_2 : population) {
         		if (critter_1 != critter_2) {
         			if (critter_1.x_coord == critter_2.x_coord && critter_1.y_coord == critter_2.y_coord) {
-        				boolean fight_1 = critter_1.fight(critter_2.toString().toString());
-        				boolean fight_2 = critter_2.fight(critter_1.toString().toString());
+        				boolean fight_1 = critter_1.fight(critter_2.toString());
+        				boolean fight_2 = critter_2.fight(critter_1.toString());
         				if (critter_1.energy > 0 && critter_2.energy > 0 
         						&& critter_1.x_coord == critter_2.x_coord 
         						&& critter_1.y_coord == critter_2.y_coord) {
@@ -381,6 +408,8 @@ public abstract class Critter {
         						critter_1.energy += critter_2.energy/2;
         						critter_2.energy = 0;
         					}
+        					// num2 was larger or both were equal
+        					// either way, critter2 will always win
         					else {
         						critter_2.energy += critter_1.energy/2;
         						critter_1.energy = 0;
@@ -392,9 +421,14 @@ public abstract class Critter {
     	}
     }
     
-    protected final static void genClover() throws InvalidCritterException {
+    protected final static void genClover() {
     	for (int i = 0; i < Params.REFRESH_CLOVER_COUNT; i++) {
-    		createCritter("Clover");
+    		try {
+				createCritter("Clover");
+			} catch (InvalidCritterException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
     	}
     }
     /**

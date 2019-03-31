@@ -18,6 +18,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Scanner;
 
 /*
@@ -96,6 +100,112 @@ public class Main {
     /* Do not alter the code above for your submission. */
 
     private static void commandInterpreter(Scanner kb) {
-        //TODO Implement this method
+		System.out.print("critters> ");
+		String input = kb.nextLine();
+		String[] inputs = input.trim().split("\\s+");
+		while(!inputs[0].equals("quit")) {
+			if (inputs.length<=3 && !inputs[0].equals("")) {
+				// show
+				if (inputs[0].equals("show") && inputs.length == 1) {
+					Critter.displayWorld();
+				}
+				// step
+				else if (inputs[0].equals("step") && inputs.length < 3) {
+					int count;
+					if (inputs.length == 1) {
+						count = 1;
+					}
+					else {
+						try {
+							count = Integer.parseInt(inputs[1]);
+						} catch (NumberFormatException e) {
+							count = 1;
+						}
+					}
+					for (int i = 0; i < count; i++) {
+						try {
+							Critter.worldTimeStep();
+						} catch (InvalidCritterException e) {
+							e.printStackTrace();
+						}
+					}
+				}
+				// seed [<number>]
+				else if (inputs[0].equals("seed") && inputs.length < 3) {
+					long seed;
+					if (inputs.length == 1) {
+						seed = 1;
+					}
+					else {
+						try {
+							seed = Long.parseLong(inputs[1]);
+						} catch (NumberFormatException e) {
+							seed = 1;
+						}
+					}					
+				}
+				// create <class_name> [<count>]
+				else if (inputs[0].equals("create") && inputs.length < 4) {
+					int count;
+					if (inputs.length > 1) {
+						if (inputs.length == 3) {
+							try {
+								count = Integer.parseInt(inputs[2]);
+							} catch (NumberFormatException e) {
+								count = 1;
+							}
+						}
+						else {
+							count = 1;
+						}
+						for (int i = 0; i < count; i++) {
+							try {
+								Critter.createCritter(inputs[1]);
+							} catch (InvalidCritterException e) {
+								System.out.println("error processing");
+							}
+						}
+					}
+				}
+				// stats <class_name>
+				else if (inputs[0].equals("stats") && inputs.length < 3) {
+					if (inputs.length == 2) {
+						try {
+							List<Critter> critters = Critter.getInstances(inputs[1]);
+							if (inputs[1].equals("Clover") || inputs[1].equals("Critter")) {
+								Critter.runStats(critters);
+							}
+							else {
+								Class<?> critterClass = Class.forName("assignment4." + inputs[1]);
+								Constructor<?> constructor = critterClass.getConstructor();
+								Object new_critter = constructor.newInstance();
+								Method m = new_critter.getClass().getDeclaredMethod("runStats", List.class); 
+								m.invoke(critterClass, critters);
+							}
+						} catch (InvalidCritterException | ClassNotFoundException 
+								| NoSuchMethodException | SecurityException | IllegalAccessException 
+								| IllegalArgumentException | InvocationTargetException 
+								| InstantiationException e) {
+							System.out.println("error processing: " + input);
+						}
+					}
+				}
+				// clear
+				else if (inputs[0].equals("clear") && inputs.length < 2) {
+					if (inputs.length == 1) {
+						Critter.clearWorld();
+					}
+				}
+				else {
+					System.out.println("invalid command: " + input);
+				}
+			}
+			else {
+				System.out.println("invalid command: " + input);
+			}
+			System.out.print("critters> ");
+			input = kb.nextLine();
+			inputs = input.trim().split("\\s+");
+		}
     }
 }
