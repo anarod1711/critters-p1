@@ -2,12 +2,12 @@
  * CRITTERS Critter.java
  * EE422C Project 4 submission by
  * Replace <...> with your actual data.
- * <Student1 Name>
- * <Student1 EID>
- * <Student1 5-digit Unique No.>
- * <Student2 Name>
- * <Student2 EID>
- * <Student2 5-digit Unique No.>
+ * <Analaura Rodriguez>
+ * <ar55665>
+ * <16225>
+ * <Kevin Han>
+ * <kdh2789>
+ * <16190>
  * Slip days used: <0>
  * Spring 2019
  */
@@ -35,11 +35,11 @@ public abstract class Critter {
 
     private int x_coord;
     private int y_coord;
-    private boolean moved;
-    private static boolean encounter = false;
+    private boolean moved; 						// moved in this time step
+    private static boolean encounter = false;	// encounter mode or not
 
-    private static List<Critter> population = new ArrayList<Critter>();
-    private static List<Critter> babies = new ArrayList<Critter>();
+    private static List<Critter> population = new ArrayList<Critter>(); // holds alive and active critters
+    private static List<Critter> babies = new ArrayList<Critter>();		// holds newborns one time step
 
     /* Gets the package name.  This assumes that Critter and its
      * subclasses are all in the same package. */
@@ -50,11 +50,17 @@ public abstract class Critter {
     }
 
     private static Random rand = new Random();
-
+    
+    /**
+     * returns random int between 0 and max - 1
+     */
     public static int getRandomInt(int max) {
         return rand.nextInt(max);
     }
 
+    /**
+     * sets seed
+     */
     public static void setSeed(long new_seed) {
         rand = new Random(new_seed);
     }
@@ -102,6 +108,7 @@ public abstract class Critter {
     	Class<?> critter_class;
     	List<Critter> critters = new ArrayList<Critter>();
 		try {
+			// adds all instances of critter_class_name to collection critters
 			critter_class = Class.forName(critter_name);
 			for (Critter critter : population) {
 	        	if (critter_class.isInstance(critter)) {
@@ -122,6 +129,17 @@ public abstract class Critter {
         babies.clear();
     }
 
+    /**
+     * Simulates one time step for every Critter in the critter
+     * population (whole world), resolves encounters, if any, 
+     * removes dead critters from world, generates new clovers,
+     * and adds all babies to the active population.
+     * create and initialize a Critter subclass.
+     * Throws InvalidCritterException if a critter attempts to
+     * reproduce a nonexistent critter.
+     *
+     * @throws InvalidCritterException
+     */
     public static void worldTimeStep() throws InvalidCritterException {
     	// movement of critters
     	for (Critter critter : population) {
@@ -151,9 +169,14 @@ public abstract class Critter {
     	babies.clear();
     }
     
+    
+    /**
+     * Displays grid with current active critters 
+     * 
+     */
     public static void displayWorld() {
-    	int height = Params.WORLD_HEIGHT+2;
-    	int width = Params.WORLD_WIDTH+2;
+    	int height = Params.WORLD_HEIGHT + 2;
+    	int width = Params.WORLD_WIDTH + 2;
         String[][] world = new String[height][width];
         // add + to corners
         world[0][0] = "+";
@@ -214,8 +237,14 @@ public abstract class Critter {
         System.out.println();
     }
     
+    /* 
+     * Different actions for different critters
+     */
     public abstract void doTimeStep();
     
+    /* 
+     * Different fight actions for different critters
+     */
     public abstract boolean fight(String oponent);
 
     /* a one-character long string that visually depicts your critter
@@ -223,15 +252,25 @@ public abstract class Critter {
     public String toString() {
         return "";
     }
-
+    
+    /* 
+     * @return critter energy
+     */
     protected int getEnergy() {
         return energy;
     }
     
+    /**
+     * Checks whether a critter can walk or run during
+     * a time step or encounter. If it can, moves critter.
+     * If not, leaves critter in current position.
+     *
+     * @param int direction desired, int number of steps 
+     */
     private void checkMove(int direction, int step) {
-        if (!moved) {
+        if (!moved) { // hasn't moved in time step
         	if (!encounter) { // not in encounter mode
-        		move(direction, step);
+        		move(direction, step); // can move
         	}
         	// encounter mode, make sure you don't run or walk
         	// to same position as another critter
@@ -249,31 +288,59 @@ public abstract class Critter {
         			}
         		}
         	}
-        	moved = true;
+        	moved = true; // successful move
         }
     }
     
+    /**
+     * Deducts energy each time critter attempts
+     * to walk (1 step). Only moves critter's 
+     * position if valid (i.e. hasn't moved in 
+     * current time step and if in encounter mode, 
+     * position desired isn't occupied).
+     *
+     * @param int direction desired
+     */
     protected final void walk(int direction) {
         energy -= Params.WALK_ENERGY_COST;
         checkMove(direction, 1);
     }
 
+    /**
+     * Deducts energy each time critter attempts
+     * to run (2 steps). Only moves critter's 
+     * position if valid (i.e. hasn't moved in 
+     * current time step and if in encounter mode, 
+     * position desired isn't occupied).
+     *
+     * @param int direction desired
+     */
     protected final void run(int direction) {
     	energy -= Params.RUN_ENERGY_COST;
     	checkMove(direction, 2);
 
     }
     
+    /**
+     * Changes critter position in direction desired 
+     * by steps (steps = 1 if walk, 2 if run).
+     *
+     * @param int direction desired, int steps to take
+     */
     private void move(int direction, int steps) {
-    	if (direction == 0) {
-    		if (x_coord + steps >= Params.WORLD_WIDTH) {
+    	/* wraps x or y coordinate if moving will cause it to go
+    	 * out of bounds. If no out of bounds, just moves position
+    	 * by "steps."
+    	 */
+    	if (direction == 0) {		// east
+    		if (x_coord + steps >= Params.WORLD_WIDTH) { 
     			x_coord = Math.abs(Params.WORLD_WIDTH - (x_coord + steps));
     		}
-    		else { 
+    		else { 							
     			x_coord++;
     		}
     	}
-    	else if (direction == 1) {
+    	else if (direction == 1) {	// north east
     		if (x_coord + steps >= Params.WORLD_WIDTH) {
     			x_coord = Math.abs(Params.WORLD_WIDTH - (x_coord + steps));
     		}
@@ -288,7 +355,7 @@ public abstract class Critter {
     			y_coord--;
     		}
     	}
-    	else if (direction == 2) {
+    	else if (direction == 2) {	// north
     		if (y_coord - steps < 0) {
     			y_coord = Math.abs(Params.WORLD_HEIGHT - Math.abs(y_coord - steps));
     		}
@@ -296,7 +363,7 @@ public abstract class Critter {
     			y_coord--;
     		}
     	}
-    	else if (direction == 3) {
+    	else if (direction == 3) {	// north west
     		if (x_coord - steps < 0) {
     			x_coord = Math.abs(Params.WORLD_WIDTH - Math.abs(x_coord - steps));
     		}
@@ -311,7 +378,7 @@ public abstract class Critter {
     			y_coord--;
     		}
     	}
-    	else if (direction == 4) {
+    	else if (direction == 4) {	// west
     		if (x_coord - steps < 0) {
     			x_coord = Math.abs(Params.WORLD_WIDTH - Math.abs(x_coord - steps));
     		}
@@ -319,7 +386,7 @@ public abstract class Critter {
     			x_coord--;
     		}
     	}
-    	else if (direction == 5) {
+    	else if (direction == 5) {	// south west
     		if (x_coord - steps < 0) {
     			x_coord = Math.abs(Params.WORLD_WIDTH - Math.abs(x_coord - steps));
     		}
@@ -334,7 +401,7 @@ public abstract class Critter {
     			y_coord++;
     		}
     	}
-    	else if (direction == 6) {
+    	else if (direction == 6) { // south
     		if (y_coord + steps >= Params.WORLD_HEIGHT) {
     			y_coord = Math.abs(Params.WORLD_HEIGHT - (y_coord + steps));
     		}
@@ -342,7 +409,7 @@ public abstract class Critter {
     			y_coord++;
     		}
     	}
-    	else {
+    	else {						// south east
     		if (x_coord + steps >= Params.WORLD_WIDTH) {
     			x_coord = Math.abs(Params.WORLD_WIDTH - (x_coord + steps));
     		}
@@ -359,8 +426,13 @@ public abstract class Critter {
     	}
     }
 
+    /**
+     * Produces offspring of type Critter one
+     * step in direction desired.
+     *
+     * @param Critter to produce, int direction desired
+     */
     protected final void reproduce(Critter offspring, int direction) {
-        // TODO: Complete this method
     	if (offspring.energy >= Params.MIN_REPRODUCE_ENERGY) {
 			try {
 				Critter new_critter = offspring.getClass().newInstance();
@@ -380,17 +452,31 @@ public abstract class Critter {
     	}
     }
     
-    protected final static void doEncounters() {
+    /**
+     * Resolves encounters between critters in
+     * same position by giving each critter the 
+     * option to fight or opt out. If critters want
+     * to fight and are still in the same position
+     * the critter that roles the higher dice wins
+     * the position and absorbs half the energy of
+     * losing critter, which dies. 
+     *
+     */
+    private static void doEncounters() {
     	for (Critter critter_1 : population) {
     		for (Critter critter_2 : population) {
         		if (critter_1 != critter_2) {
+        			// same position
         			if (critter_1.x_coord == critter_2.x_coord && critter_1.y_coord == critter_2.y_coord) {
+        				// ask critters if they want to fight
         				boolean fight_1 = critter_1.fight(critter_2.toString());
         				boolean fight_2 = critter_2.fight(critter_1.toString());
+        				// still in same position with energy
         				if (critter_1.energy > 0 && critter_2.energy > 0 
         						&& critter_1.x_coord == critter_2.x_coord 
         						&& critter_1.y_coord == critter_2.y_coord) {
         					int num_1, num_2;
+        					// roll dice (maybe make this into function later)
         					if (fight_1) {
         						num_1 = getRandomInt(critter_1.energy);
         					}
@@ -404,7 +490,9 @@ public abstract class Critter {
         					else {
         						num_2 = 0;
         					}
-        					if (num_1 > num_2) {
+        					// winner absorbs 1/2 loser energy
+        					// loser dies
+        					if (num_1 > num_2) { // critter 1 wins
         						critter_1.energy += critter_2.energy/2;
         						critter_2.energy = 0;
         					}
@@ -421,7 +509,11 @@ public abstract class Critter {
     	}
     }
     
-    protected final static void genClover() {
+    /**
+     * Generates more clover/food.
+     *
+     */
+    private static void genClover() {
     	for (int i = 0; i < Params.REFRESH_CLOVER_COUNT; i++) {
     		try {
 				createCritter("Clover");
@@ -431,6 +523,7 @@ public abstract class Critter {
 			}
     	}
     }
+    
     /**
      * The TestCritter class allows some critters to "cheat". If you
      * want to create tests of your Critter model, you can create

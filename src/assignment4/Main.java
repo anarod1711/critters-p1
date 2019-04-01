@@ -2,12 +2,12 @@
  * CRITTERS Main.java
  * EE422C Project 4 submission by
  * Replace <...> with your actual data.
- * <Student1 Name>
- * <Student1 EID>
- * <Student1 5-digit Unique No.>
- * <Student2 Name>
- * <Student2 EID>
- * <Student2 5-digit Unique No.>
+ * <Analaura Rodriguez>
+ * <ar55665>
+ * <16225>
+ * <Kevin Han>
+ * <kdh2789>
+ * <16190>
  * Slip days used: <0>
  * Spring 2019
  */
@@ -98,12 +98,23 @@ public class Main {
     }
 
     /* Do not alter the code above for your submission. */
-
+    /** Runs the simulation taking a single string input from user.
+     * Displays "error processing" when a known command was inputed
+     * in an array of strings.
+     * Does the same when a number format exception is caught and invalid 
+     * critter exception, amongst others, occurs. 
+     * Displays "invalid command" if the command isn't remotely known.
+     * Simulation stops when user enters "quit."
+     *
+     * @param Scanner variable for user input
+     */
     private static void commandInterpreter(Scanner kb) {
+    	// obtain input and parse
 		System.out.print("critters> ");
 		String input = kb.nextLine();
 		String[] inputs = input.trim().split("\\s+");
-		while(!inputs[0].equals("quit")) {
+		// keep running simulator while no quit command
+		while(!inputs[0].equals("quit")) {	
 			// show
 			if (inputs[0].equals("show")) {
 				if (inputs.length == 1) {
