@@ -109,8 +109,7 @@ public abstract class Critter {
 	        	}
 	        }
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new InvalidCritterException(critter_class_name);
 		}
         return critters;
     }
@@ -142,14 +141,14 @@ public abstract class Critter {
     			population.remove(i);
     			i--;
     		}
-    	}
+    	}    	
     	// reset moved flag for all critters before next round
     	for (Critter critter : population) {
     		critter.moved = false;
     	}
     	genClover();
-		population.addAll(babies);
-		babies.clear();
+    	population.addAll(babies);
+    	babies.clear();
     }
     
     public static void displayWorld() {
@@ -232,23 +231,25 @@ public abstract class Critter {
     private void checkMove(int direction, int step) {
         if (!moved) {
         	if (!encounter) { // not in encounter mode
-        		move(direction, 1);
-        		moved = true;
+        		move(direction, step);
         	}
         	// encounter mode, make sure you don't run or walk
         	// to same position as another critter
         	else {
         		int og_x = x_coord;
         		int og_y = y_coord;
-        		move(direction, 1);
+        		move(direction, step);
         		for (Critter critter : population) {
-        			if (critter.x_coord == x_coord && critter.y_coord == y_coord) {
-        				x_coord = og_x;
-        				y_coord = og_y;
-        				break;
+        			if (this != critter) {
+	        			if (critter.x_coord == x_coord && critter.y_coord == y_coord) {
+	        				x_coord = og_x;
+	        				y_coord = og_y;
+	        				break;
+	        			}
         			}
         		}
         	}
+        	moved = true;
         }
     }
     
@@ -403,7 +404,6 @@ public abstract class Critter {
         					else {
         						num_2 = 0;
         					}
-        					
         					if (num_1 > num_2) {
         						critter_1.energy += critter_2.energy/2;
         						critter_2.energy = 0;

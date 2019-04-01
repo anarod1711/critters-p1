@@ -42,7 +42,7 @@ public class Main {
     static ByteArrayOutputStream testOutputString;
 
     /* Use it or not, as you wish! */
-    private static boolean DEBUG = false;
+    private static boolean DEBUG = true;
 
     /* if you want to restore output to console */
     static PrintStream old = System.out;
@@ -104,14 +104,19 @@ public class Main {
 		String input = kb.nextLine();
 		String[] inputs = input.trim().split("\\s+");
 		while(!inputs[0].equals("quit")) {
-			if (inputs.length<=3 && !inputs[0].equals("")) {
-				// show
-				if (inputs[0].equals("show") && inputs.length == 1) {
+			// show
+			if (inputs[0].equals("show")) {
+				if (inputs.length == 1) {
 					Critter.displayWorld();
 				}
-				// step
-				else if (inputs[0].equals("step") && inputs.length < 3) {
-					int count;
+				else {
+					System.out.println("error processing: " + input);
+				}
+			}
+			// step [<count>]
+			else if (inputs[0].equals("step")) {
+				if (inputs.length < 3) {
+					int count = 0;
 					if (inputs.length == 1) {
 						count = 1;
 					}
@@ -119,85 +124,99 @@ public class Main {
 						try {
 							count = Integer.parseInt(inputs[1]);
 						} catch (NumberFormatException e) {
-							count = 1;
+							System.out.println("error processing: " + input);
 						}
 					}
 					for (int i = 0; i < count; i++) {
 						try {
 							Critter.worldTimeStep();
 						} catch (InvalidCritterException e) {
-							e.printStackTrace();
+							System.out.println("error processing: " + input);
 						}
 					}
 				}
-				// seed [<number>]
-				else if (inputs[0].equals("seed") && inputs.length < 3) {
+				else {
+					System.out.println("error processing: " + input);
+				}
+			}
+			// seed [<number>]
+			else if (inputs[0].equals("seed")) {
+				if (inputs.length < 3) {
 					long seed;
 					if (inputs.length == 1) {
-						seed = 1;
+						System.out.println("error processing: " + input);
 					}
 					else {
 						try {
 							seed = Long.parseLong(inputs[1]);
 						} catch (NumberFormatException e) {
-							seed = 1;
+							System.out.println("error processing: " + input);
 						}
-					}					
+					}	
 				}
-				// create <class_name> [<count>]
-				else if (inputs[0].equals("create") && inputs.length < 4) {
-					int count;
-					if (inputs.length > 1) {
-						if (inputs.length == 3) {
-							try {
-								count = Integer.parseInt(inputs[2]);
-							} catch (NumberFormatException e) {
-								count = 1;
-							}
-						}
-						else {
-							count = 1;
-						}
-						for (int i = 0; i < count; i++) {
-							try {
-								Critter.createCritter(inputs[1]);
-							} catch (InvalidCritterException e) {
-								System.out.println("error processing");
-							}
-						}
-					}
+				else {
+					System.out.println("error processing: " + input);
 				}
-				// stats <class_name>
-				else if (inputs[0].equals("stats") && inputs.length < 3) {
-					if (inputs.length == 2) {
+			}
+			// create <class_name> [<count>]
+			else if (inputs[0].equals("create")) {
+				if (inputs.length < 4 && inputs.length > 1) {
+					int count = 0;
+					if (inputs.length == 3) {
 						try {
-							List<Critter> critters = Critter.getInstances(inputs[1]);
-							if (inputs[1].equals("Clover") || inputs[1].equals("Critter")) {
-								Critter.runStats(critters);
-							}
-							else {
-								Class<?> critterClass = Class.forName("assignment4." + inputs[1]);
-								Constructor<?> constructor = critterClass.getConstructor();
-								Object new_critter = constructor.newInstance();
-								Method m = new_critter.getClass().getDeclaredMethod("runStats", List.class); 
-								m.invoke(critterClass, critters);
-							}
-						} catch (InvalidCritterException | ClassNotFoundException 
-								| NoSuchMethodException | SecurityException | IllegalAccessException 
-								| IllegalArgumentException | InvocationTargetException 
-								| InstantiationException e) {
+							count = Integer.parseInt(inputs[2]);
+						} catch (NumberFormatException e) {
 							System.out.println("error processing: " + input);
 						}
 					}
-				}
-				// clear
-				else if (inputs[0].equals("clear") && inputs.length < 2) {
-					if (inputs.length == 1) {
-						Critter.clearWorld();
+					else {
+						count = 1;
+					}
+					try {
+						for (int i = 0; i < count; i++) {
+							Critter.createCritter(inputs[1]);
+						}
+					} catch (InvalidCritterException e) {
+						System.out.println("error processing: " + input);
 					}
 				}
 				else {
-					System.out.println("invalid command: " + input);
+					System.out.println("error processing: " + input);
+				}
+			}
+			// stats <class_name>
+			else if (inputs[0].equals("stats")) {
+				if (inputs.length == 2) {
+					try {
+						List<Critter> critters = Critter.getInstances(inputs[1]);
+						if (inputs[1].equals("Clover") || inputs[1].equals("Critter")) {
+							Critter.runStats(critters);
+						}
+						else {
+							Class<?> critterClass = Class.forName(myPackage + "." + inputs[1]);
+							Constructor<?> constructor = critterClass.getConstructor();
+							Object new_critter = constructor.newInstance();
+							Method m = new_critter.getClass().getDeclaredMethod("runStats", List.class); 
+							m.invoke(critterClass, critters);
+						}
+					} catch (InvalidCritterException | ClassNotFoundException 
+							| NoSuchMethodException | SecurityException | IllegalAccessException 
+							| IllegalArgumentException | InvocationTargetException 
+							| InstantiationException e) {
+						System.out.println("error processing: " + input);
+					}
+				}
+				else {
+					System.out.println("error processing: " + input);
+				}
+			}
+			// clear
+			else if (inputs[0].equals("clear")) {
+				if (inputs.length == 1) {
+					Critter.clearWorld();
+				}
+				else {
+					System.out.println("error processing: " + input);
 				}
 			}
 			else {
